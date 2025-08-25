@@ -1,5 +1,7 @@
 package ru.sad.comicscreator.platform
 
+import androidx.compose.runtime.Composable
+
 /**
  * Platform-specific интерфейс для работы с разрешениями
  */
@@ -29,4 +31,5 @@ expect class PermissionsHelper {
 /**
  * Создает экземпляр PermissionsHelper для текущей платформы
  */
+@Composable
 expect fun createPermissionsHelper(): PermissionsHelper

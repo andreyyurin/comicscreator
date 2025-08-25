@@ -339,7 +339,7 @@ fun PhotoItem(
             .clickable { onSelect() }
             .border(
                 width = if (photo.isSelected) 3.dp else 0.dp,
-                color = if (photo.isSelected) Color.White else Color.Transparent,
+                color = if (photo.isSelected) Color(0xFFE0E0E0) else Color.Transparent, // Перламутровый цвет
                 shape = RoundedCornerShape(16.dp)
             )
             .background(Color(0xFF6200EE).copy(alpha = 0.1f))
@@ -377,12 +377,12 @@ fun PhotoItem(
                     .padding(8.dp)
                     .size(24.dp)
                     .clip(RoundedCornerShape(12.dp))
-                    .background(Color.White),
+                    .background(Color(0xFFF5F5F5)), // Светло-перламутровый фон
                 contentAlignment = Alignment.Center
             ) {
                 Text(
                     text = "✓",
-                    color = Color(0xFF6200EE),
+                    color = Color(0xFF6200EE), // Оставляем фиолетовый для контраста
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold
                 )

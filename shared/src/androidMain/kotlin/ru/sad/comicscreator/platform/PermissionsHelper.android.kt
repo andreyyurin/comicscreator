@@ -2,10 +2,14 @@ package ru.sad.comicscreator.platform
 
 import android.Manifest
 import android.content.Context
+import android.content.ContextWrapper
 import android.content.pm.PackageManager
 import android.os.Build
 import androidx.activity.ComponentActivity
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.resume
@@ -102,8 +106,17 @@ actual class PermissionsHelper(private val activity: ComponentActivity) {
 /**
  * Создает экземпляр PermissionsHelper для Android
  */
+@Composable
 actual fun createPermissionsHelper(): PermissionsHelper {
-    throw NotImplementedError("PermissionsHelper требует активити. Используйте createPermissionsHelper(activity)")
+    val context = LocalContext.current
+    val activity = remember(context) {
+        when (context) {
+            is ComponentActivity -> context
+            is ContextWrapper -> context.baseContext as? ComponentActivity ?: error("PermissionsHelper requires an Activity context")
+            else -> error("PermissionsHelper requires an Activity context")
+        }
+    }
+    return remember(activity) { PermissionsHelper(activity) }
 }
 
 /**

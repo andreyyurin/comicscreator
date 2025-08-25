@@ -1,5 +1,7 @@
 package ru.sad.comicscreator.platform
 
+import androidx.compose.runtime.Composable
+
 /**
  * iOS реализация PermissionsHelper
  * На iOS Peekaboo сам обрабатывает разрешения через Info.plist
@@ -30,6 +32,7 @@ actual class PermissionsHelper {
 /**
  * Создает экземпляр PermissionsHelper для iOS
  */
+@Composable
 actual fun createPermissionsHelper(): PermissionsHelper {
     return PermissionsHelper()
 }
