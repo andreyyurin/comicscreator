@@ -12,6 +12,7 @@ import org.koin.compose.KoinApplication
 import ru.sad.comicscreator.di.initKoin
 import ru.sad.comicscreator.presentation.navigation.Screen
 import ru.sad.comicscreator.presentation.screens.HomeScreen
+import ru.sad.comicscreator.presentation.screens.PhotoSelectionScreen
 
 @Composable
 fun ComicsCreatorApp() {
@@ -37,13 +38,30 @@ fun ComicsCreatorNavigation() {
             composable(Screen.Home.route) {
                 HomeScreen(
                     onNavigateToCreateCharacter = { 
-                        navController.navigate(Screen.CreateCharacter.route) 
+                        navController.navigate(Screen.PhotoSelection.route) 
                     },
                     onNavigateToSelectTemplate = { 
                         navController.navigate(Screen.SelectTemplate.route) 
                     },
                     onNavigateToComicGallery = { 
                         navController.navigate(Screen.ComicGallery.route) 
+                    }
+                )
+            }
+            
+            composable(Screen.PhotoSelection.route) {
+                PhotoSelectionScreen(
+                    onBackPressed = { 
+                        navController.navigateUp() 
+                    },
+                    onGalleryClick = {
+                        // TODO: Реализовать выбор из галереи
+                    },
+                    onCameraClick = {
+                        // TODO: Реализовать съемку с камеры
+                    },
+                    onContinueClick = {
+                        navController.navigate(Screen.CreateCharacter.route)
                     }
                 )
             }

@@ -8,6 +8,9 @@ sealed class Screen(val route: String) {
     // Главный экран с обзором
     data object Home : Screen("home")
     
+    // Экран выбора фотографий
+    data object PhotoSelection : Screen("photo_selection")
+    
     // Экран создания персонажа
     data object CreateCharacter : Screen("create_character")
     
@@ -44,6 +47,7 @@ sealed class Screen(val route: String) {
          */
         val allScreens = listOf(
             Home,
+            PhotoSelection,
             CreateCharacter,
             SelectTemplate,
             CreateComic,
