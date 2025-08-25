@@ -150,6 +150,17 @@ fun PhotoSelectionScreen(
         
         Spacer(modifier = Modifier.height(32.dp))
         
+        // Подсказка для выбора фотографий
+        if (availablePhotos.isNotEmpty()) {
+            Text(
+                text = "Нажмите на фотографию, чтобы выбрать её для создания персонажей",
+                style = MaterialTheme.typography.bodySmall,
+                color = Color.Gray,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+        }
+        
         // Сетка фотографий
         LazyVerticalGrid(
             columns = GridCells.Fixed(2),
@@ -259,13 +270,13 @@ fun PhotoSelectionScreen(
                 .fillMaxWidth()
                 .height(56.dp),
             colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFF2196F3) // Синий
+                containerColor = if (viewModel.canContinue()) Color(0xFF2196F3) else Color.Gray // Синий если можно продолжить, серый если нет
             ),
             shape = RoundedCornerShape(28.dp),
-            enabled = viewModel.canContinue() // Активна только при наличии фото
+            enabled = viewModel.canContinue() // Активна только при наличии выбранных фото
         ) {
             Text(
-                text = "Продолжить",
+                text = if (viewModel.canContinue()) "Продолжить" else "Выберите фотографии",
                 color = Color.White,
                 fontWeight = FontWeight.SemiBold,
                 fontSize = 16.sp

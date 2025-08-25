@@ -36,7 +36,7 @@ class PhotoSelectionViewModel : ViewModel() {
                 mimeType = "image/jpeg",
                 selectedAt = 0L, // TODO: использовать kotlinx-datetime
                 isFromCamera = isFromCamera,
-                isSelected = false // По умолчанию не выбрана
+                isSelected = true // Автоматически выбираем добавленную фотографию
             )
             addAvailablePhoto(photo)
         } catch (e: Exception) {
@@ -51,23 +51,30 @@ class PhotoSelectionViewModel : ViewModel() {
         val currentPhotos = _availablePhotos.value.toMutableList()
         currentPhotos.add(photo)
         _availablePhotos.value = currentPhotos
+        
+        // Обновляем список выбранных фотографий
+        updateSelectedPhotos()
     }
     
     /**
      * Переключает статус выбора фотографии
      */
     fun togglePhotoSelection(photoId: String) {
+        println("DEBUG: togglePhotoSelection called for photoId: $photoId")
         val currentAvailable = _availablePhotos.value.toMutableList()
         val photoIndex = currentAvailable.indexOfFirst { it.id == photoId }
         
         if (photoIndex != -1) {
             val photo = currentAvailable[photoIndex]
             val updatedPhoto = photo.copy(isSelected = !photo.isSelected)
+            println("DEBUG: Photo ${photo.id} selection changed from ${photo.isSelected} to ${updatedPhoto.isSelected}")
             currentAvailable[photoIndex] = updatedPhoto
             _availablePhotos.value = currentAvailable
             
             // Обновляем список выбранных фотографий
             updateSelectedPhotos()
+        } else {
+            println("DEBUG: Photo with id $photoId not found")
         }
     }
     
@@ -101,7 +108,11 @@ class PhotoSelectionViewModel : ViewModel() {
     /**
      * Проверяет, можно ли продолжить (есть ли выбранные фотографии)
      */
-    fun canContinue(): Boolean = _selectedPhotos.value.isNotEmpty()
+    fun canContinue(): Boolean {
+        val canContinue = _selectedPhotos.value.isNotEmpty()
+        println("DEBUG: canContinue() = $canContinue, selectedPhotos count = ${_selectedPhotos.value.size}")
+        return canContinue
+    }
     
     /**
      * Получает список выбранных фотографий для передачи на следующий экран
