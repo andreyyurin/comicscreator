@@ -6,6 +6,7 @@ import android.content.ContextWrapper
 import android.content.pm.PackageManager
 import android.os.Build
 import androidx.activity.ComponentActivity
+import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -18,15 +19,22 @@ import kotlin.coroutines.resume
  * Android реализация PermissionsHelper
  */
 actual class PermissionsHelper(private val activity: ComponentActivity) {
-    
+
     private var permissionCallback: ((Boolean) -> Unit)? = null
-    
-    // ActivityResultLauncher для запроса разрешений
-    private val permissionLauncher = activity.registerForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { isGranted: Boolean ->
-        permissionCallback?.invoke(isGranted)
-        permissionCallback = null
+
+    // ActivityResultLauncher для запроса разрешений - создается лениво
+    private var permissionLauncher: ActivityResultLauncher<String>? = null
+
+    private fun getOrCreatePermissionLauncher(): ActivityResultLauncher<String> {
+        if (permissionLauncher == null) {
+            permissionLauncher = activity.registerForActivityResult(
+                ActivityResultContracts.RequestPermission()
+            ) { isGranted: Boolean ->
+                permissionCallback?.invoke(isGranted)
+                permissionCallback = null
+            }
+        }
+        return permissionLauncher!!
     }
     
     /**
@@ -68,8 +76,8 @@ actual class PermissionsHelper(private val activity: ComponentActivity) {
         permissionCallback = { isGranted ->
             continuation.resume(isGranted)
         }
-        
-        permissionLauncher.launch(Manifest.permission.CAMERA)
+
+        getOrCreatePermissionLauncher().launch(Manifest.permission.CAMERA)
         
         continuation.invokeOnCancellation {
             permissionCallback = null
@@ -94,8 +102,8 @@ actual class PermissionsHelper(private val activity: ComponentActivity) {
         permissionCallback = { isGranted ->
             continuation.resume(isGranted)
         }
-        
-        permissionLauncher.launch(permission)
+
+        getOrCreatePermissionLauncher().launch(permission)
         
         continuation.invokeOnCancellation {
             permissionCallback = null
