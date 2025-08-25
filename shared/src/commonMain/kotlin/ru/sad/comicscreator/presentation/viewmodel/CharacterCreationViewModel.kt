@@ -1,7 +1,7 @@
 package ru.sad.comicscreator.presentation.viewmodel
 
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -13,9 +13,7 @@ import ru.sad.comicscreator.domain.model.SelectedPhoto
  * ViewModel для экрана создания персонажей
  * Управляет состоянием выбранных фотографий и процессом создания персонажей
  */
-class CharacterCreationViewModel {
-    
-    private val viewModelScope = CoroutineScope(Dispatchers.Main)
+class CharacterCreationViewModel : ViewModel() {
     
     // Выбранные фотографии с предыдущего экрана
     private val _selectedPhotos = MutableStateFlow<List<SelectedPhoto>>(emptyList())

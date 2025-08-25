@@ -21,7 +21,7 @@ val appModule = module {
     
     // ViewModels
     viewModel { PhotoSelectionViewModel() }
-    factory { CharacterCreationViewModel() }
+    viewModel { CharacterCreationViewModel() }
     
     // TODO: Добавить остальные ViewModels когда будут реализованы репозитории
     // factory { MainViewModel(get(), get(), get()) }
