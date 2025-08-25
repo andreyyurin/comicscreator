@@ -55,8 +55,8 @@ fun ComicsCreatorNavigation() {
                     onBackPressed = {
                         navController.navigateUp()
                     },
-                    onContinueClick = {
-                        navController.navigate(Screen.CreateCharacter.route)
+                    onContinueClick = { route ->
+                        navController.navigate(route)
                     }
                 )
             }

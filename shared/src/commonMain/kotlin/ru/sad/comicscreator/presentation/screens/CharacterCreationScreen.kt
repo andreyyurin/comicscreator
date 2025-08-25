@@ -41,7 +41,13 @@ fun CharacterCreationScreen(
     val isCreatingCharacters by viewModel.isCreatingCharacters.collectAsState()
     val error by viewModel.error.collectAsState()
     
-
+    // Получаем фотографии из глобального состояния
+    LaunchedEffect(Unit) {
+        val photos = ru.sad.comicscreator.presentation.viewmodel.PhotoSelectionViewModel.getGlobalSelectedPhotos()
+        if (photos.isNotEmpty()) {
+            viewModel.setSelectedPhotos(photos)
+        }
+    }
     
     // Показываем ошибку если есть
     LaunchedEffect(error) {

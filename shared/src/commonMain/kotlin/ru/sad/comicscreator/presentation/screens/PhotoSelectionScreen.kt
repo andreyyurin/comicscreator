@@ -39,7 +39,7 @@ import ru.sad.comicscreator.presentation.viewmodel.PhotoSelectionViewModel
 @Composable
 fun PhotoSelectionScreen(
     onBackPressed: () -> Unit,
-    onContinueClick: () -> Unit,
+    onContinueClick: (String) -> Unit,
     viewModel: PhotoSelectionViewModel = koinViewModel()
 ) {
     // Состояние из ViewModel
@@ -265,7 +265,11 @@ fun PhotoSelectionScreen(
         
         // Кнопка продолжить
         Button(
-            onClick = onContinueClick,
+            onClick = {
+                // Сохраняем выбранные фотографии в глобальное состояние
+                ru.sad.comicscreator.presentation.viewmodel.PhotoSelectionViewModel.setGlobalSelectedPhotos(selectedPhotos)
+                onContinueClick(Screen.CreateCharacter.route)
+            },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp),

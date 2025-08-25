@@ -118,4 +118,15 @@ class PhotoSelectionViewModel : ViewModel() {
      * Получает список выбранных фотографий для передачи на следующий экран
      */
     fun getSelectedPhotosForNextScreen(): List<SelectedPhoto> = _selectedPhotos.value
+    
+    companion object {
+        // Глобальное состояние для передачи данных между экранами
+        private var globalSelectedPhotos: List<SelectedPhoto> = emptyList()
+        
+        fun setGlobalSelectedPhotos(photos: List<SelectedPhoto>) {
+            globalSelectedPhotos = photos
+        }
+        
+        fun getGlobalSelectedPhotos(): List<SelectedPhoto> = globalSelectedPhotos
+    }
 }
