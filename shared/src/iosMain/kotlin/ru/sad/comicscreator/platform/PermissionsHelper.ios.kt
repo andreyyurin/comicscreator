@@ -6,27 +6,29 @@ import androidx.compose.runtime.Composable
  * iOS реализация PermissionsHelper
  * На iOS Peekaboo сам обрабатывает разрешения через Info.plist
  */
-actual class PermissionsHelper {
-    
+class IosPermissionsHelper : PermissionsHelper {
+
+    override var onPermissionResult: ((String, Boolean) -> Unit)? = null
+
     /**
      * На iOS разрешения обрабатываются автоматически через Info.plist
      */
-    actual suspend fun hasCameraPermission(): Boolean = true
-    
+    override suspend fun hasCameraPermission(): Boolean = true
+
     /**
      * На iOS разрешения обрабатываются автоматически через Info.plist
      */
-    actual suspend fun hasGalleryPermission(): Boolean = true
-    
+    override suspend fun hasGalleryPermission(): Boolean = true
+
     /**
      * На iOS разрешения запрашиваются автоматически системой
      */
-    actual suspend fun requestCameraPermission(): Boolean = true
-    
+    override suspend fun requestCameraPermission(): Boolean = true
+
     /**
      * На iOS разрешения запрашиваются автоматически системой
      */
-    actual suspend fun requestGalleryPermission(): Boolean = true
+    override suspend fun requestGalleryPermission(): Boolean = true
 }
 
 /**
@@ -34,5 +36,5 @@ actual class PermissionsHelper {
  */
 @Composable
 actual fun createPermissionsHelper(): PermissionsHelper {
-    return PermissionsHelper()
+    return IosPermissionsHelper()
 }

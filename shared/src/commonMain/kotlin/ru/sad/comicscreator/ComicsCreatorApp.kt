@@ -51,8 +51,8 @@ fun ComicsCreatorNavigation() {
             
             composable(Screen.PhotoSelection.route) {
                 PhotoSelectionScreen(
-                    onBackPressed = { 
-                        navController.navigateUp() 
+                    onBackPressed = {
+                        navController.navigateUp()
                     },
                     onContinueClick = {
                         navController.navigate(Screen.CreateCharacter.route)

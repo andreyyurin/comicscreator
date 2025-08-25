@@ -18,95 +18,102 @@ import kotlin.coroutines.resume
 /**
  * Android реализация PermissionsHelper
  */
-actual class PermissionsHelper(private val activity: ComponentActivity) {
+class AndroidPermissionsHelper(private val activity: ComponentActivity) : PermissionsHelper {
 
-    private var permissionCallback: ((Boolean) -> Unit)? = null
+    override var onPermissionResult: ((String, Boolean) -> Unit)? = null
 
-    // ActivityResultLauncher для запроса разрешений - создается лениво
-    private var permissionLauncher: ActivityResultLauncher<String>? = null
+    private var currentPermission: String? = null
 
-    private fun getOrCreatePermissionLauncher(): ActivityResultLauncher<String> {
-        if (permissionLauncher == null) {
-            permissionLauncher = activity.registerForActivityResult(
-                ActivityResultContracts.RequestPermission()
-            ) { isGranted: Boolean ->
-                permissionCallback?.invoke(isGranted)
-                permissionCallback = null
-            }
-        }
-        return permissionLauncher!!
-    }
-    
     /**
      * Проверяет, есть ли разрешение на камеру
      */
-    actual suspend fun hasCameraPermission(): Boolean {
+    override suspend fun hasCameraPermission(): Boolean {
         return ContextCompat.checkSelfPermission(
             activity,
             Manifest.permission.CAMERA
         ) == PackageManager.PERMISSION_GRANTED
     }
-    
+
     /**
      * Проверяет, есть ли разрешение на галерею
      */
-    actual suspend fun hasGalleryPermission(): Boolean {
+    override suspend fun hasGalleryPermission(): Boolean {
         val permission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             Manifest.permission.READ_MEDIA_IMAGES
         } else {
             Manifest.permission.READ_EXTERNAL_STORAGE
         }
-        
+
         return ContextCompat.checkSelfPermission(
             activity,
             permission
         ) == PackageManager.PERMISSION_GRANTED
     }
-    
+
     /**
      * Запрашивает разрешение на камеру
      */
-    actual suspend fun requestCameraPermission(): Boolean = suspendCancellableCoroutine { continuation ->
-        // Используем runBlocking для вызова suspend функции
+    override suspend fun requestCameraPermission(): Boolean = suspendCancellableCoroutine { continuation ->
         if (ContextCompat.checkSelfPermission(activity, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
             continuation.resume(true)
             return@suspendCancellableCoroutine
         }
-        
-        permissionCallback = { isGranted ->
-            continuation.resume(isGranted)
+
+        currentPermission = Manifest.permission.CAMERA
+        onPermissionResult = { permission, isGranted ->
+            if (permission == Manifest.permission.CAMERA) {
+                continuation.resume(isGranted)
+                currentPermission = null
+                onPermissionResult = null
+            }
         }
 
-        getOrCreatePermissionLauncher().launch(Manifest.permission.CAMERA)
-        
+        requestPermission(Manifest.permission.CAMERA)
+
         continuation.invokeOnCancellation {
-            permissionCallback = null
+            currentPermission = null
+            onPermissionResult = null
         }
     }
-    
+
     /**
      * Запрашивает разрешение на галерею
      */
-    actual suspend fun requestGalleryPermission(): Boolean = suspendCancellableCoroutine { continuation ->
+    override suspend fun requestGalleryPermission(): Boolean = suspendCancellableCoroutine { continuation ->
         val permission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             Manifest.permission.READ_MEDIA_IMAGES
         } else {
             Manifest.permission.READ_EXTERNAL_STORAGE
         }
-        
+
         if (ContextCompat.checkSelfPermission(activity, permission) == PackageManager.PERMISSION_GRANTED) {
             continuation.resume(true)
             return@suspendCancellableCoroutine
         }
-        
-        permissionCallback = { isGranted ->
-            continuation.resume(isGranted)
+
+        currentPermission = permission
+        onPermissionResult = { perm, isGranted ->
+            if (perm == permission) {
+                continuation.resume(isGranted)
+                currentPermission = null
+                onPermissionResult = null
+            }
         }
 
-        getOrCreatePermissionLauncher().launch(permission)
-        
+        requestPermission(permission)
+
         continuation.invokeOnCancellation {
-            permissionCallback = null
+            currentPermission = null
+            onPermissionResult = null
+        }
+    }
+
+    /**
+     * Запрашивает разрешение через системный диалог
+     */
+    private fun requestPermission(permission: String) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            activity.requestPermissions(arrayOf(permission), 1001)
         }
     }
 }
@@ -124,12 +131,17 @@ actual fun createPermissionsHelper(): PermissionsHelper {
             else -> error("PermissionsHelper requires an Activity context")
         }
     }
-    return remember(activity) { PermissionsHelper(activity) }
+    return remember(activity) { AndroidPermissionsHelper(activity) }
 }
 
 /**
- * Создает экземпляр PermissionsHelper для Android с активити
+ * Обработчик результатов разрешений для активности
+ * Этот метод должен быть вызван в onRequestPermissionsResult активности
  */
-fun createPermissionsHelper(activity: ComponentActivity): PermissionsHelper {
-    return PermissionsHelper(activity)
+fun handlePermissionResult(permissionsHelper: AndroidPermissionsHelper, requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+    if (requestCode == 1001 && permissions.isNotEmpty() && grantResults.isNotEmpty()) {
+        val permission = permissions[0]
+        val isGranted = grantResults[0] == PackageManager.PERMISSION_GRANTED
+        permissionsHelper.onPermissionResult?.invoke(permission, isGranted)
+    }
 }

@@ -30,6 +30,7 @@ import com.preat.peekaboo.ui.camera.rememberPeekabooCameraState
 import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
 import ru.sad.comicscreator.domain.model.SelectedPhoto
+import ru.sad.comicscreator.platform.PermissionsHelper
 import ru.sad.comicscreator.platform.createPermissionsHelper
 import ru.sad.comicscreator.presentation.viewmodel.PhotoSelectionViewModel
 
@@ -46,6 +47,7 @@ fun PhotoSelectionScreen(
 
     var showCamera by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
+
     val permissionsHelper = createPermissionsHelper()
     
     // Launcher для выбора из галереи

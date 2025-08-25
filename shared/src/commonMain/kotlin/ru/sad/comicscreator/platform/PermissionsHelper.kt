@@ -5,23 +5,28 @@ import androidx.compose.runtime.Composable
 /**
  * Platform-specific интерфейс для работы с разрешениями
  */
-expect class PermissionsHelper {
-    
+interface PermissionsHelper {
+
+    /**
+     * Callback для запроса разрешения
+     */
+    var onPermissionResult: ((String, Boolean) -> Unit)?
+
     /**
      * Проверяет, есть ли разрешение на камеру
      */
     suspend fun hasCameraPermission(): Boolean
-    
+
     /**
      * Проверяет, есть ли разрешение на галерею
      */
     suspend fun hasGalleryPermission(): Boolean
-    
+
     /**
      * Запрашивает разрешение на камеру
      */
     suspend fun requestCameraPermission(): Boolean
-    
+
     /**
      * Запрашивает разрешение на галерею
      */
@@ -33,3 +38,4 @@ expect class PermissionsHelper {
  */
 @Composable
 expect fun createPermissionsHelper(): PermissionsHelper
+
