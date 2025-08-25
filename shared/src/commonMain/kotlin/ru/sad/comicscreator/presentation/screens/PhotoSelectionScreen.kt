@@ -18,17 +18,57 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.preat.peekaboo.image.picker.SelectionMode
+import com.preat.peekaboo.image.picker.rememberImagePickerLauncher
+import com.preat.peekaboo.ui.camera.PeekabooCamera
+import com.preat.peekaboo.ui.camera.rememberPeekabooCameraState
+import org.koin.compose.viewmodel.koinViewModel
 import ru.sad.comicscreator.domain.model.SelectedPhoto
+import ru.sad.comicscreator.presentation.viewmodel.PhotoSelectionViewModel
 
 @Composable
 fun PhotoSelectionScreen(
     onBackPressed: () -> Unit,
-    onGalleryClick: () -> Unit,
-    onCameraClick: () -> Unit,
-    onContinueClick: () -> Unit
+    onContinueClick: () -> Unit,
+    viewModel: PhotoSelectionViewModel = koinViewModel()
 ) {
-    // Временное состояние для демонстрации UI
-    var selectedPhotos by remember { mutableStateOf(listOf<SelectedPhoto>()) }
+    // Состояние из ViewModel
+    val selectedPhotos by viewModel.selectedPhotos.collectAsStateWithLifecycle()
+    val errorMessage by viewModel.errorMessage.collectAsStateWithLifecycle()
+    
+    var showCamera by remember { mutableStateOf(false) }
+    
+    // Launcher для выбора из галереи
+    val galleryLauncher = rememberImagePickerLauncher(
+        selectionMode = SelectionMode.Multiple(maxSelection = 10),
+        scope = rememberCoroutineScope(),
+        onResult = { byteArrays ->
+            byteArrays.forEach { byteArray ->
+                viewModel.addPhotoFromByteArray(byteArray, false)
+            }
+        }
+    )
+    
+    // Состояние камеры
+    val cameraState = rememberPeekabooCameraState(
+        onCapture = { byteArray ->
+            byteArray?.let { 
+                viewModel.addPhotoFromByteArray(it, true)
+                showCamera = false
+            }
+        }
+    )
+    
+    // Показываем экран камеры если выбрана камера
+    if (showCamera) {
+        CameraScreen(
+            cameraState = cameraState,
+            onBack = { showCamera = false }
+        )
+        return
+    }
     
     Column(
         modifier = Modifier
@@ -109,9 +149,7 @@ fun PhotoSelectionScreen(
             items(selectedPhotos) { photo ->
                 PhotoItem(
                     photo = photo,
-                    onRemove = {
-                        selectedPhotos = selectedPhotos.filter { it.id != photo.id }
-                    }
+                    onRemove = { viewModel.removePhoto(photo.id) }
                 )
             }
             
@@ -132,7 +170,7 @@ fun PhotoSelectionScreen(
         ) {
             // Кнопка галереи
             Button(
-                onClick = onGalleryClick,
+                onClick = { galleryLauncher.launch() },
                 modifier = Modifier
                     .weight(1f)
                     .height(56.dp),
@@ -157,7 +195,7 @@ fun PhotoSelectionScreen(
             
             // Кнопка камеры
             Button(
-                onClick = onCameraClick,
+                onClick = { showCamera = true },
                 modifier = Modifier
                     .weight(1f)
                     .height(56.dp),
@@ -193,7 +231,7 @@ fun PhotoSelectionScreen(
                 containerColor = Color(0xFF2196F3) // Синий
             ),
             shape = RoundedCornerShape(28.dp),
-            enabled = selectedPhotos.isNotEmpty() // Активна только при наличии фото
+            enabled = viewModel.canContinue() // Активна только при наличии фото
         ) {
             Text(
                 text = "Продолжить",
@@ -201,6 +239,62 @@ fun PhotoSelectionScreen(
                 fontWeight = FontWeight.SemiBold,
                 fontSize = 16.sp
             )
+        }
+    }
+}
+
+@Composable
+fun CameraScreen(
+    cameraState: com.preat.peekaboo.ui.camera.PeekabooCameraState,
+    onBack: () -> Unit
+) {
+    Box(modifier = Modifier.fillMaxSize()) {
+        PeekabooCamera(
+            state = cameraState,
+            modifier = Modifier.fillMaxSize(),
+            permissionDeniedContent = {
+                // UI при отказе в разрешениях
+                Column(
+                    modifier = Modifier.fillMaxSize(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        text = "Необходимо разрешение на камеру",
+                        style = MaterialTheme.typography.headlineSmall
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        text = "Пожалуйста, предоставьте разрешение на использование камеры в настройках",
+                        style = MaterialTheme.typography.bodyMedium,
+                        textAlign = TextAlign.Center
+                    )
+                }
+            }
+        )
+        
+        // Кнопка назад
+        Card(
+            modifier = Modifier
+                .align(Alignment.TopStart)
+                .padding(16.dp)
+                .size(48.dp)
+                .clickable { onBack() },
+            colors = CardDefaults.cardColors(
+                containerColor = Color.Black.copy(alpha = 0.5f)
+            ),
+            shape = RoundedCornerShape(24.dp)
+        ) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "←",
+                    color = Color.White,
+                    fontSize = 20.sp
+                )
+            }
         }
     }
 }

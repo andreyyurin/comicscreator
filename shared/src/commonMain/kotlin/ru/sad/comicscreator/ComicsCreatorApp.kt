@@ -54,12 +54,6 @@ fun ComicsCreatorNavigation() {
                     onBackPressed = { 
                         navController.navigateUp() 
                     },
-                    onGalleryClick = {
-                        // TODO: Реализовать выбор из галереи
-                    },
-                    onCameraClick = {
-                        // TODO: Реализовать съемку с камеры
-                    },
                     onContinueClick = {
                         navController.navigate(Screen.CreateCharacter.route)
                     }

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths>
+    <!-- Путь для временных файлов камеры в cache директории -->
+    <cache-path 
+        name="camera_images" 
+        path="." />
+    
+    <!-- Путь для внешних файлов если потребуется -->
+    <external-files-path 
+        name="external_files" 
+        path="." />
+</paths>

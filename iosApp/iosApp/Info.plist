@@ -4,5 +4,15 @@
 <dict>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
+	
+	<!-- Permissions для камеры и фотогалереи -->
+	<key>NSCameraUsageDescription</key>
+	<string>Приложение использует камеру для создания фотографий персонажей комиксов</string>
+	
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Приложение получает доступ к галерее для выбора фотографий персонажей</string>
+	
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Приложение может сохранять созданные комиксы в галерею</string>
 </dict>
 </plist>

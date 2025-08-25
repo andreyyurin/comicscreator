@@ -23,8 +23,6 @@ kotlin {
     iosArm64()
     iosSimulatorArm64()
     
-    jvm()
-    
     sourceSets {
         commonMain.dependencies {
             // Compose Multiplatform
@@ -56,6 +54,10 @@ kotlin {
             
             // Kotlinx Serialization
             implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
+            
+            // Peekaboo для работы с камерой и галереей
+            implementation(libs.peekaboo.ui)
+            implementation(libs.peekaboo.image.picker)
         }
         
         androidMain.dependencies {
