@@ -5,11 +5,14 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import ru.sad.comicscreator.domain.model.SelectedPhoto
+import ru.sad.comicscreator.data.GlobalPhotoStorage
 
 /**
  * ViewModel для экрана выбора фотографий
  */
-class PhotoSelectionViewModel : ViewModel() {
+class PhotoSelectionViewModel(
+    private val globalPhotoStorage: GlobalPhotoStorage
+) : ViewModel() {
     
     // Состояние загруженных фотографий
     private val _availablePhotos = MutableStateFlow<List<SelectedPhoto>>(emptyList())
@@ -119,14 +122,12 @@ class PhotoSelectionViewModel : ViewModel() {
      */
     fun getSelectedPhotosForNextScreen(): List<SelectedPhoto> = _selectedPhotos.value
     
-    companion object {
-        // Глобальное состояние для передачи данных между экранами
-        private var globalSelectedPhotos: List<SelectedPhoto> = emptyList()
-        
-        fun setGlobalSelectedPhotos(photos: List<SelectedPhoto>) {
-            globalSelectedPhotos = photos
-        }
-        
-        fun getGlobalSelectedPhotos(): List<SelectedPhoto> = globalSelectedPhotos
+    /**
+     * Сохраняет выбранные фотографии в глобальное хранилище
+     */
+    fun saveSelectedPhotosToGlobalStorage() {
+        val photos = _selectedPhotos.value
+        println("DEBUG: saveSelectedPhotosToGlobalStorage called with ${photos.size} photos")
+        globalPhotoStorage.setSelectedPhotos(photos)
     }
 }

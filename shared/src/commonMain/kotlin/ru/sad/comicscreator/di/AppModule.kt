@@ -7,6 +7,7 @@ import ru.sad.comicscreator.domain.usecase.CreateComicUseCase
 import ru.sad.comicscreator.domain.usecase.GetComicTemplatesUseCase
 import ru.sad.comicscreator.presentation.viewmodel.PhotoSelectionViewModel
 import ru.sad.comicscreator.presentation.viewmodel.CharacterCreationViewModel
+import ru.sad.comicscreator.data.GlobalPhotoStorage
 
 /**
  * Модуль Koin для основных зависимостей приложения
@@ -19,9 +20,12 @@ val appModule = module {
     // single { CreateComicUseCase(get(), get()) }
     // single { GetComicTemplatesUseCase(get()) }
     
+    // Services
+    single { GlobalPhotoStorage() }
+    
     // ViewModels
-    viewModel { PhotoSelectionViewModel() }
-    viewModel { CharacterCreationViewModel() }
+    viewModel { PhotoSelectionViewModel(get()) }
+    viewModel { CharacterCreationViewModel(get()) }
     
     // TODO: Добавить остальные ViewModels когда будут реализованы репозитории
     // factory { MainViewModel(get(), get(), get()) }

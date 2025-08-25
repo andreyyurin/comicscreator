@@ -8,12 +8,15 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import ru.sad.comicscreator.domain.model.SelectedPhoto
+import ru.sad.comicscreator.data.GlobalPhotoStorage
 
 /**
  * ViewModel для экрана создания персонажей
  * Управляет состоянием выбранных фотографий и процессом создания персонажей
  */
-class CharacterCreationViewModel : ViewModel() {
+class CharacterCreationViewModel(
+    private val globalPhotoStorage: GlobalPhotoStorage
+) : ViewModel() {
     
     // Выбранные фотографии с предыдущего экрана
     private val _selectedPhotos = MutableStateFlow<List<SelectedPhoto>>(emptyList())
@@ -35,7 +38,20 @@ class CharacterCreationViewModel : ViewModel() {
      * Устанавливает выбранные фотографии с предыдущего экрана
      */
     fun setSelectedPhotos(photos: List<SelectedPhoto>) {
+        println("DEBUG: CharacterCreationViewModel.setSelectedPhotos called with ${photos.size} photos")
         _selectedPhotos.value = photos
+        println("DEBUG: _selectedPhotos.value now contains ${_selectedPhotos.value.size} photos")
+    }
+    
+    /**
+     * Загружает фотографии из глобального хранилища
+     */
+    fun loadPhotosFromGlobalStorage() {
+        val photos = globalPhotoStorage.getSelectedPhotos()
+        println("DEBUG: loadPhotosFromGlobalStorage called, got ${photos.size} photos")
+        if (photos.isNotEmpty()) {
+            setSelectedPhotos(photos)
+        }
     }
     
     /**

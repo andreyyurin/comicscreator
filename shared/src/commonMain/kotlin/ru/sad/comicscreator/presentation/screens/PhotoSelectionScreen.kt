@@ -35,6 +35,7 @@ import ru.sad.comicscreator.platform.PermissionsHelper
 import ru.sad.comicscreator.platform.createPermissionsHelper
 import ru.sad.comicscreator.presentation.navigation.Screen
 import ru.sad.comicscreator.presentation.viewmodel.PhotoSelectionViewModel
+import ru.sad.comicscreator.data.GlobalPhotoStorage
 
 @Composable
 fun PhotoSelectionScreen(
@@ -266,8 +267,8 @@ fun PhotoSelectionScreen(
         // Кнопка продолжить
         Button(
             onClick = {
-                // Сохраняем выбранные фотографии в глобальное состояние
-                ru.sad.comicscreator.presentation.viewmodel.PhotoSelectionViewModel.setGlobalSelectedPhotos(selectedPhotos)
+                // Сохраняем выбранные фотографии в глобальное хранилище
+                viewModel.saveSelectedPhotosToGlobalStorage()
                 onContinueClick(Screen.CreateCharacter.route)
             },
             modifier = Modifier

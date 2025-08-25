@@ -25,6 +25,7 @@ import kotlinx.serialization.json.Json
 import org.koin.compose.viewmodel.koinViewModel
 import ru.sad.comicscreator.presentation.navigation.Screen
 import ru.sad.comicscreator.presentation.viewmodel.CharacterCreationViewModel
+import ru.sad.comicscreator.data.GlobalPhotoStorage
 
 /**
  * Экран создания персонажей
@@ -41,12 +42,10 @@ fun CharacterCreationScreen(
     val isCreatingCharacters by viewModel.isCreatingCharacters.collectAsState()
     val error by viewModel.error.collectAsState()
     
-    // Получаем фотографии из глобального состояния
+    // Загружаем фотографии из глобального хранилища
     LaunchedEffect(Unit) {
-        val photos = ru.sad.comicscreator.presentation.viewmodel.PhotoSelectionViewModel.getGlobalSelectedPhotos()
-        if (photos.isNotEmpty()) {
-            viewModel.setSelectedPhotos(photos)
-        }
+        println("DEBUG: CharacterCreationScreen LaunchedEffect started")
+        viewModel.loadPhotosFromGlobalStorage()
     }
     
     // Показываем ошибку если есть
