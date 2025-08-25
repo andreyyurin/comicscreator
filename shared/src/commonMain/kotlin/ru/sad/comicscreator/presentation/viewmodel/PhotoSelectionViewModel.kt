@@ -11,7 +11,11 @@ import ru.sad.comicscreator.domain.model.SelectedPhoto
  */
 class PhotoSelectionViewModel : ViewModel() {
     
-    // Состояние выбранных фотографий
+    // Состояние загруженных фотографий
+    private val _availablePhotos = MutableStateFlow<List<SelectedPhoto>>(emptyList())
+    val availablePhotos: StateFlow<List<SelectedPhoto>> = _availablePhotos.asStateFlow()
+    
+    // Состояние выбранных фотографий для продолжения
     private val _selectedPhotos = MutableStateFlow<List<SelectedPhoto>>(emptyList())
     val selectedPhotos: StateFlow<List<SelectedPhoto>> = _selectedPhotos.asStateFlow()
     
@@ -20,40 +24,71 @@ class PhotoSelectionViewModel : ViewModel() {
     val errorMessage: StateFlow<String?> = _errorMessage.asStateFlow()
     
     /**
-     * Добавляет фотографию в список выбранных из ByteArray (результат Peekaboo)
+     * Добавляет фотографию в список доступных из ByteArray (результат Peekaboo)
      */
     fun addPhotoFromByteArray(byteArray: ByteArray, isFromCamera: Boolean = false) {
         try {
             val timestamp = kotlin.random.Random.nextLong() // Временное решение вместо System.currentTimeMillis()
             val photo = SelectedPhoto(
                 uri = "bytearray://${byteArray.size}", // Временный URI, позже можно сохранить в файл
+                byteArray = byteArray, // Сохраняем данные изображения для отображения
                 fileName = if (isFromCamera) "camera_photo_${timestamp}.jpg" else "gallery_photo_${timestamp}.jpg",
                 mimeType = "image/jpeg",
                 selectedAt = 0L, // TODO: использовать kotlinx-datetime
-                isFromCamera = isFromCamera
+                isFromCamera = isFromCamera,
+                isSelected = false // По умолчанию не выбрана
             )
-            addPhoto(photo)
+            addAvailablePhoto(photo)
         } catch (e: Exception) {
             _errorMessage.value = "Ошибка при обработке фотографии: ${e.message}"
         }
     }
     
     /**
-     * Добавляет фотографию в список выбранных
+     * Добавляет фотографию в список доступных
      */
-    private fun addPhoto(photo: SelectedPhoto) {
-        val currentPhotos = _selectedPhotos.value.toMutableList()
+    private fun addAvailablePhoto(photo: SelectedPhoto) {
+        val currentPhotos = _availablePhotos.value.toMutableList()
         currentPhotos.add(photo)
-        _selectedPhotos.value = currentPhotos
+        _availablePhotos.value = currentPhotos
     }
     
     /**
-     * Удаляет фотографию из списка выбранных
+     * Переключает статус выбора фотографии
+     */
+    fun togglePhotoSelection(photoId: String) {
+        val currentAvailable = _availablePhotos.value.toMutableList()
+        val photoIndex = currentAvailable.indexOfFirst { it.id == photoId }
+        
+        if (photoIndex != -1) {
+            val photo = currentAvailable[photoIndex]
+            val updatedPhoto = photo.copy(isSelected = !photo.isSelected)
+            currentAvailable[photoIndex] = updatedPhoto
+            _availablePhotos.value = currentAvailable
+            
+            // Обновляем список выбранных фотографий
+            updateSelectedPhotos()
+        }
+    }
+    
+    /**
+     * Удаляет фотографию из списка доступных
      */
     fun removePhoto(photoId: String) {
-        val currentPhotos = _selectedPhotos.value.toMutableList()
-        currentPhotos.removeAll { it.id == photoId }
-        _selectedPhotos.value = currentPhotos
+        val currentAvailable = _availablePhotos.value.toMutableList()
+        currentAvailable.removeAll { it.id == photoId }
+        _availablePhotos.value = currentAvailable
+        
+        // Обновляем список выбранных фотографий
+        updateSelectedPhotos()
+    }
+    
+    /**
+     * Обновляет список выбранных фотографий на основе флага isSelected
+     */
+    private fun updateSelectedPhotos() {
+        val selectedPhotos = _availablePhotos.value.filter { it.isSelected }
+        _selectedPhotos.value = selectedPhotos
     }
     
     /**
@@ -67,4 +102,9 @@ class PhotoSelectionViewModel : ViewModel() {
      * Проверяет, можно ли продолжить (есть ли выбранные фотографии)
      */
     fun canContinue(): Boolean = _selectedPhotos.value.isNotEmpty()
+    
+    /**
+     * Получает список выбранных фотографий для передачи на следующий экран
+     */
+    fun getSelectedPhotosForNextScreen(): List<SelectedPhoto> = _selectedPhotos.value
 }

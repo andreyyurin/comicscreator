@@ -14,6 +14,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -22,10 +24,13 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.preat.peekaboo.image.picker.SelectionMode
 import com.preat.peekaboo.image.picker.rememberImagePickerLauncher
+import com.preat.peekaboo.image.picker.toImageBitmap
 import com.preat.peekaboo.ui.camera.PeekabooCamera
 import com.preat.peekaboo.ui.camera.rememberPeekabooCameraState
+import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
 import ru.sad.comicscreator.domain.model.SelectedPhoto
+import ru.sad.comicscreator.platform.createPermissionsHelper
 import ru.sad.comicscreator.presentation.viewmodel.PhotoSelectionViewModel
 
 @Composable
@@ -35,10 +40,13 @@ fun PhotoSelectionScreen(
     viewModel: PhotoSelectionViewModel = koinViewModel()
 ) {
     // Состояние из ViewModel
+    val availablePhotos by viewModel.availablePhotos.collectAsStateWithLifecycle()
     val selectedPhotos by viewModel.selectedPhotos.collectAsStateWithLifecycle()
     val errorMessage by viewModel.errorMessage.collectAsStateWithLifecycle()
-    
+
     var showCamera by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
+    val permissionsHelper = createPermissionsHelper()
     
     // Launcher для выбора из галереи
     val galleryLauncher = rememberImagePickerLauncher(
@@ -145,11 +153,12 @@ fun PhotoSelectionScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp),
             modifier = Modifier.weight(1f)
         ) {
-            // Отображаем выбранные фотографии
-            items(selectedPhotos) { photo ->
+            // Отображаем загруженные фотографии
+            items(availablePhotos) { photo ->
                 PhotoItem(
                     photo = photo,
-                    onRemove = { viewModel.removePhoto(photo.id) }
+                    onRemove = { viewModel.removePhoto(photo.id) },
+                    onSelect = { viewModel.togglePhotoSelection(photo.id) }
                 )
             }
             
@@ -170,7 +179,16 @@ fun PhotoSelectionScreen(
         ) {
             // Кнопка галереи
             Button(
-                onClick = { galleryLauncher.launch() },
+                onClick = { 
+                    scope.launch {
+                        if (permissionsHelper.requestGalleryPermission()) {
+                            galleryLauncher.launch()
+                        } else {
+                            viewModel.clearError()
+                            // TODO: Показать сообщение об отказе в разрешении
+                        }
+                    }
+                },
                 modifier = Modifier
                     .weight(1f)
                     .height(56.dp),
@@ -195,7 +213,16 @@ fun PhotoSelectionScreen(
             
             // Кнопка камеры
             Button(
-                onClick = { showCamera = true },
+                onClick = { 
+                    scope.launch {
+                        if (permissionsHelper.requestCameraPermission()) {
+                            showCamera = true
+                        } else {
+                            viewModel.clearError()
+                            // TODO: Показать сообщение об отказе в разрешении
+                        }
+                    }
+                },
                 modifier = Modifier
                     .weight(1f)
                     .height(56.dp),
@@ -302,24 +329,64 @@ fun CameraScreen(
 @Composable
 fun PhotoItem(
     photo: SelectedPhoto,
-    onRemove: () -> Unit
+    onRemove: () -> Unit,
+    onSelect: () -> Unit
 ) {
     Box(
         modifier = Modifier
             .aspectRatio(1f)
             .clip(RoundedCornerShape(16.dp))
-            .background(Color(0xFF6200EE).copy(alpha = 0.1f)) // Временный цвет
-    ) {
-        // TODO: Загружать и отображать реальные изображения
-        // Пока просто цветной прямоугольник с иконкой
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = "📷",
-                fontSize = 48.sp
+            .clickable { onSelect() }
+            .border(
+                width = if (photo.isSelected) 3.dp else 0.dp,
+                color = if (photo.isSelected) Color.White else Color.Transparent,
+                shape = RoundedCornerShape(16.dp)
             )
+            .background(Color(0xFF6200EE).copy(alpha = 0.1f))
+    ) {
+        // Отображение изображения
+        photo.byteArray?.let { byteArray ->
+            val imageBitmap = remember(byteArray) {
+                try {
+                    byteArray.toImageBitmap()
+                } catch (e: Exception) {
+                    null
+                }
+            }
+            
+            if (imageBitmap != null) {
+                androidx.compose.foundation.Image(
+                    bitmap = imageBitmap,
+                    contentDescription = "Выбранная фотография",
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
+                )
+            } else {
+                PhotoPlaceholder(photo.isFromCamera)
+            }
+        } ?: run {
+            // Если нет данных изображения, показываем заглушку
+            PhotoPlaceholder(photo.isFromCamera)
+        }
+        
+        // Индикатор выбора
+        if (photo.isSelected) {
+            Box(
+                modifier = Modifier
+                    .align(Alignment.TopStart)
+                    .padding(8.dp)
+                    .size(24.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(Color.White),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "✓",
+                    color = Color(0xFF6200EE),
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
         }
         
         // Кнопка удаления
@@ -330,7 +397,7 @@ fun PhotoItem(
                 .size(24.dp)
                 .clickable { onRemove() },
             colors = CardDefaults.cardColors(
-                containerColor = Color.Black.copy(alpha = 0.7f)
+                containerColor = Color.Red.copy(alpha = 0.8f)
             ),
             shape = RoundedCornerShape(12.dp)
         ) {
@@ -339,12 +406,36 @@ fun PhotoItem(
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = "✕",
+                    text = "×",
                     color = Color.White,
-                    fontSize = 12.sp
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold
                 )
             }
         }
+    }
+}
+
+@Composable
+private fun PhotoPlaceholder(isFromCamera: Boolean) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text(
+            text = if (isFromCamera) "📷" else "🖼️",
+            fontSize = 48.sp
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = if (isFromCamera) "Камера" else "Галерея",
+            style = MaterialTheme.typography.bodySmall,
+            color = Color.Gray,
+            textAlign = TextAlign.Center
+        )
     }
 }
 
