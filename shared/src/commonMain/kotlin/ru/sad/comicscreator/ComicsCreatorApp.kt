@@ -13,6 +13,7 @@ import ru.sad.comicscreator.di.initKoin
 import ru.sad.comicscreator.presentation.navigation.Screen
 import ru.sad.comicscreator.presentation.screens.HomeScreen
 import ru.sad.comicscreator.presentation.screens.PhotoSelectionScreen
+import ru.sad.comicscreator.presentation.screens.CharacterCreationScreen
 
 @Composable
 fun ComicsCreatorApp() {
@@ -61,10 +62,10 @@ fun ComicsCreatorNavigation() {
             }
             
             composable(Screen.CreateCharacter.route) {
-                PlaceholderScreen(
-                    title = "Создавайте персонажей",
-                    description = "Загрузите фото и создайте персонажа в стиле комикса",
-                    navController = navController
+                CharacterCreationScreen(
+                    onNavigate = { route ->
+                        navController.navigate(route)
+                    }
                 )
             }
             

@@ -6,6 +6,7 @@ import ru.sad.comicscreator.domain.usecase.CreateCharacterUseCase
 import ru.sad.comicscreator.domain.usecase.CreateComicUseCase
 import ru.sad.comicscreator.domain.usecase.GetComicTemplatesUseCase
 import ru.sad.comicscreator.presentation.viewmodel.PhotoSelectionViewModel
+import ru.sad.comicscreator.presentation.viewmodel.CharacterCreationViewModel
 
 /**
  * Модуль Koin для основных зависимостей приложения
@@ -20,6 +21,7 @@ val appModule = module {
     
     // ViewModels
     viewModel { PhotoSelectionViewModel() }
+    factory { CharacterCreationViewModel() }
     
     // TODO: Добавить остальные ViewModels когда будут реализованы репозитории
     // factory { MainViewModel(get(), get(), get()) }

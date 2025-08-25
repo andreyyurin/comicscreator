@@ -12,7 +12,9 @@ sealed class Screen(val route: String) {
     data object PhotoSelection : Screen("photo_selection")
     
     // Экран создания персонажа
-    data object CreateCharacter : Screen("create_character")
+    data object CreateCharacter : Screen("create_character") {
+        fun createRoute(selectedPhotosJson: String) = "$route?selectedPhotos=$selectedPhotosJson"
+    }
     
     // Экран выбора шаблона комикса
     data object SelectTemplate : Screen("select_template")
